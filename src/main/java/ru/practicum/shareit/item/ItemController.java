@@ -28,7 +28,7 @@ public class ItemController {
 
     @GetMapping("/{itemId}")
     @ResponseStatus(HttpStatus.OK)
-    public ItemDto get(@PathVariable(name="itemId") long itemId) {
+    public ItemDto get(@PathVariable(name = "itemId") long itemId) {
         return itemService.getItemById(itemId);
     }
 
@@ -40,7 +40,7 @@ public class ItemController {
 
     @GetMapping("/search")
     @ResponseStatus(HttpStatus.OK)
-    public List<ItemDto> getAllByText(@RequestParam(name="text") String text) {
+    public List<ItemDto> getAllByText(@RequestParam(name = "text") String text) {
         if (text.isBlank()) {
             log.warn("Поиск вещей по пустому тексту");
             return List.of();
@@ -51,7 +51,7 @@ public class ItemController {
 
     @PatchMapping("/{itemId}")
     @ResponseStatus(HttpStatus.OK)
-    public ItemDto update(@PathVariable(name="itemId") long itemId,
+    public ItemDto update(@PathVariable(name = "itemId") long itemId,
                           @RequestHeader("X-Sharer-User-Id") long userId,
                           @RequestBody UpdateItemRequest request) {
         return itemService.updateItem(userId, itemId, request);
@@ -60,7 +60,7 @@ public class ItemController {
     @DeleteMapping("/{itemId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@RequestHeader("X-Sharer-User-Id") long userId,
-                       @PathVariable(name="itemId") long itemId) {
+                       @PathVariable(name = "itemId") long itemId) {
         itemService.deleteItem(userId, itemId);
     }
 }
