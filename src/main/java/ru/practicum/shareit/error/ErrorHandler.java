@@ -1,15 +1,25 @@
-package ru.practicum.shareit;
+package ru.practicum.shareit.error;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.practicum.shareit.exception.DuplicatedDataException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.NotOwnerException;
 import ru.practicum.shareit.exception.ParameterNotValidException;
 
 @RestControllerAdvice
 public class ErrorHandler {
+
+    @ExceptionHandler()
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleDuplicatedData(final DuplicatedDataException e) {
+        return new ErrorResponse(
+                "Ошибка дублирования!",
+                e.getMessage()
+        );
+    }
 
     @ExceptionHandler()
     @ResponseStatus(HttpStatus.FORBIDDEN)

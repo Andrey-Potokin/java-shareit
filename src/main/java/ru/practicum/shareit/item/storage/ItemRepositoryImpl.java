@@ -12,7 +12,7 @@ import java.util.Optional;
 @Repository
 @Slf4j
 public class ItemRepositoryImpl implements ItemRepository {
-    private static final List<Item> items = new ArrayList<>();
+    private final List<Item> items = new ArrayList<>();
 
     @Override
     public Item insert(Item newItem) {
