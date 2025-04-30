@@ -19,26 +19,27 @@ import java.util.List;
 @Slf4j
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     @Override
     public UserDto createUser(NewUserRequest request) {
         checkEmailUniqueness(request.getEmail());
-        User user = UserMapper.mapToUser(request);
+        User user = userMapper.toUser(request);
         userRepository.insert(user);
-        return UserMapper.mapToUserDto(user);
+        return userMapper.toUserDto(user);
     }
 
     @Override
     public UserDto getUserById(long userId) {
         return userRepository.findById(userId)
-                .map(UserMapper::mapToUserDto)
+                .map(userMapper::toUserDto)
                 .orElseThrow(() -> new NotFoundException("Пользователь с id = " + userId + " не найден"));
     }
 
     @Override
     public List<UserDto> getUsers() {
         return userRepository.findUsers().stream()
-                .map(UserMapper::mapToUserDto)
+                .map(userMapper::toUserDto)
                 .toList();
     }
 
@@ -46,10 +47,10 @@ public class UserServiceImpl implements UserService {
     public UserDto updateUser(long userId, UpdateUserRequest request) {
         checkEmailUniqueness(request.getEmail());
         User updatedUser = userRepository.findById(userId)
-                .map(user -> UserMapper.updateUserFields(user, request))
+                .map(user -> updateUserFields(user, request))
                 .orElseThrow(() -> new NotFoundException("Пользователь с id = " + userId + " не найден"));
         userRepository.update(userId,updatedUser);
-        return UserMapper.mapToUserDto(updatedUser);
+        return userMapper.toUserDto(updatedUser);
     }
 
     @Override
@@ -61,5 +62,15 @@ public class UserServiceImpl implements UserService {
         if (userRepository.findByEmail(email).isPresent()) {
             throw new DuplicatedDataException("Пользователь с таким email уже существует");
         }
+    }
+
+    private User updateUserFields(User user, UpdateUserRequest request) {
+        if (request.hasName()) {
+            user.setName(request.getName());
+        }
+        if (request.hasEmail()) {
+            user.setEmail(request.getEmail());
+        }
+        return user;
     }
 }

@@ -21,14 +21,15 @@ import java.util.List;
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepositoryImpl userRepository;
+    private final ItemMapper itemMapper;
 
     @Override
     public ItemDto createItem(Long userId, NewItemRequest request) {
         if (userRepository.findById(userId).isPresent()) {
-            Item item = ItemMapper.mapToItem(request);
+            Item item = itemMapper.toItem(request);
             item.setOwnerId(userId);
             itemRepository.insert(item);
-            return ItemMapper.mapToItemDto(item);
+            return itemMapper.toItemDto(item);
         } else {
             log.error("Пользователь с id {} не найден", userId);
             throw new NotFoundException("Пользователь с id " + userId + " не найден");
@@ -38,7 +39,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto getItemById(long itemId) {
         return itemRepository.findById(itemId)
-                .map(ItemMapper::mapToItemDto)
+                .map(itemMapper::toItemDto)
                 .orElseThrow(() -> {
                     log.error("Вещь с id {} не найдена", itemId);
                     return new NotFoundException("Вещь с id " + itemId + " не найдена");
@@ -53,7 +54,7 @@ public class ItemServiceImpl implements ItemService {
         } else {
             return itemRepository.findAllByUserId(userId)
                     .stream()
-                    .map(ItemMapper::mapToItemDto)
+                    .map(itemMapper::toItemDto)
                     .toList();
         }
     }
@@ -66,7 +67,7 @@ public class ItemServiceImpl implements ItemService {
         } else {
             return itemRepository.findAllByText(text).stream()
                     .filter(item -> item.getAvailable() == true)
-                    .map(ItemMapper::mapToItemDto)
+                    .map(itemMapper::toItemDto)
                     .toList();
         }
     }
@@ -79,9 +80,9 @@ public class ItemServiceImpl implements ItemService {
                     return new NotFoundException("Вещь с id " + itemId + " не найдена");
                 });
         validateOwner(userId, item);
-        Item updatedItem = ItemMapper.updateItemFields(item, request);
+        Item updatedItem = updateItemFields(item, request);
         itemRepository.update(itemId, updatedItem);
-        return ItemMapper.mapToItemDto(updatedItem);
+        return itemMapper.toItemDto(updatedItem);
     }
 
     @Override
@@ -101,5 +102,18 @@ public class ItemServiceImpl implements ItemService {
             throw new NotOwnerException("Пользователь с id " + userId + " не является владельцем вещи с id "
                     + item.getId());
         }
+    }
+
+    private Item updateItemFields(Item item, UpdateItemRequest request) {
+        if (request.hasName()) {
+            item.setName(request.getName());
+        }
+        if (request.hasDescription()) {
+            item.setDescription(request.getDescription());
+        }
+        if (request.hasAvailable()) {
+            item.setAvailable(request.getAvailable());
+        }
+        return item;
     }
 }
