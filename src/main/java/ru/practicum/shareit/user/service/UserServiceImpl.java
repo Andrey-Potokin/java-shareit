@@ -10,7 +10,7 @@ import ru.practicum.shareit.user.dto.UpdateUserRequest;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.storage.UserRepository;
+import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.List;
 
@@ -25,7 +25,7 @@ public class UserServiceImpl implements UserService {
     public UserDto createUser(NewUserRequest request) {
         checkEmailUniqueness(request.getEmail());
         User user = userMapper.toUser(request);
-        userRepository.insert(user);
+        userRepository.save(user);
         return userMapper.toUserDto(user);
     }
 
@@ -38,7 +38,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserDto> getUsers() {
-        return userRepository.findUsers().stream()
+        return userRepository.findAll().stream()
                 .map(userMapper::toUserDto)
                 .toList();
     }
@@ -49,7 +49,7 @@ public class UserServiceImpl implements UserService {
         User updatedUser = userRepository.findById(userId)
                 .map(user -> updateUserFields(user, request))
                 .orElseThrow(() -> new NotFoundException("Пользователь с id = " + userId + " не найден"));
-        userRepository.update(userId,updatedUser);
+        userRepository.save(updatedUser);
         return userMapper.toUserDto(updatedUser);
     }
 

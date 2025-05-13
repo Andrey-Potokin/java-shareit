@@ -10,8 +10,8 @@ import ru.practicum.shareit.item.dto.NewItemRequest;
 import ru.practicum.shareit.item.dto.UpdateItemRequest;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.storage.ItemRepository;
-import ru.practicum.shareit.user.storage.UserRepositoryImpl;
+import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.user.repository.UserRepositoryImpl;
 
 import java.util.List;
 

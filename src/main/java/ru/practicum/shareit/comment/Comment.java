@@ -1,9 +1,11 @@
-package ru.practicum.shareit.review;
+package ru.practicum.shareit.comment;
 
+import lombok.Builder;
 import lombok.Data;
 
 @Data
-public class Review {
+@Builder
+public class Comment {
     private long reviewId;
     private String description;
     private long userId; // Идентификатор пользователя, оставившего отзыв
