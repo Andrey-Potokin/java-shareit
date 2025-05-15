@@ -99,13 +99,12 @@ public class ItemServiceImpl implements ItemService {
         itemRepository.deleteById(itemId);
     }
 
-    private Item validateOwner(Long userId, Item item) {
+    private void validateOwner(Long userId, Item item) {
         if (!item.getOwner().getId().equals(userId)) {
-            log.error("Пользователь с id " + userId + " не является владельцем вещи с id " + item.getId());
+            log.error("Пользователь с id {} не является владельцем вещи с id {}", userId, item.getId());
             throw new NotOwnerException("Пользователь с id " + userId + " не является владельцем вещи с id "
                     + item.getId());
         }
-        return item;
     }
 
     private Item updateItemFields(Item item, UpdateItemRequest request) {
