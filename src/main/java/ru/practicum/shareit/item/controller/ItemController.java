@@ -22,21 +22,22 @@ public class ItemController {
     public ItemDto addItem(@RequestHeader("X-Sharer-User-Id") Long userId,
                        @Valid @RequestBody NewItemRequest request) {
         log.debug("Принят запрос на добавление вещи пользователем с ID={} и запросом: {}", userId, request);
-        return itemService.createItem(userId, request);
+        return itemService.create(userId, request);
     }
 
     @GetMapping("/{itemId}")
     @ResponseStatus(HttpStatus.OK)
-    public ItemDto get(@PathVariable(name = "itemId") long itemId) {
+    public ItemDto get(@RequestHeader("X-Sharer-User-Id") long userId,
+                       @PathVariable(name = "itemId") long itemId) {
         log.debug("Принят запрос на получение вещи с ID={}", itemId);
-        return itemService.getItemById(itemId);
+        return itemService.findById(userId, itemId);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<ItemDto> getAllItems(@RequestHeader("X-Sharer-User-Id") long userId) {
         log.debug("Принят запрос на получение всех вещей пользователя с ID={}", userId);
-        return itemService.getAllItems(userId);
+        return itemService.findItemsByOwnerId(userId);
     }
 
     @GetMapping("/search")
@@ -47,7 +48,7 @@ public class ItemController {
             log.warn("Поиск вещей по пустому тексту");
             return List.of();
         } else {
-            return itemService.getAllByText(text);
+            return itemService.findItemsByNameOrDescription(text);
         }
     }
 
@@ -57,15 +58,7 @@ public class ItemController {
                           @RequestHeader("X-Sharer-User-Id") long userId,
                           @RequestBody UpdateItemRequest request) {
         log.debug("Принят запрос на обновление вещи с ID={} пользователем с ID={} и запросом: {}", itemId, userId, request);
-        return itemService.updateItem(userId, itemId, request);
-    }
-
-    @DeleteMapping("/{itemId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@RequestHeader("X-Sharer-User-Id") long userId,
-                       @PathVariable(name = "itemId") long itemId) {
-        log.debug("Принят запрос на удаление вещи с ID={} пользователем с ID={}", itemId, userId);
-        itemService.deleteItem(userId, itemId);
+        return itemService.update(userId, itemId, request);
     }
 
     @PostMapping("{itemId}/comment")

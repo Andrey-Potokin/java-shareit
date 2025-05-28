@@ -72,4 +72,9 @@ public class UserServiceImpl implements UserService {
         }
         return user;
     }
+
+    public User validateUserExist(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(String.format("Пользователь с id %d не найден.", userId)));
+    }
 }
