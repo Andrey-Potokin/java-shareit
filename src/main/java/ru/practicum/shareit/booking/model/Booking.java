@@ -10,16 +10,16 @@ import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "bookings")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "bookings")
 public class Booking {
+
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(nullable = false, updatable = false)
-    private Long id;
+    private long id;
 
     @Column(name = "start_date", nullable = false)
     private LocalDateTime start;
@@ -27,15 +27,14 @@ public class Booking {
     @Column(name = "end_date", nullable = false)
     private LocalDateTime end;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id", nullable = false)
     private Item item;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "booker_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User booker;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status")
     private BookingStatus status;
 }

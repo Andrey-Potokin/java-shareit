@@ -1,77 +1,75 @@
 package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.DuplicatedDataException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.user.dto.NewUserDto;
-import ru.practicum.shareit.user.dto.UpdateUserDto;
+import ru.practicum.shareit.user.dto.NewUserRequest;
+import ru.practicum.shareit.user.dto.UpdateUserRequest;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.List;
-import java.util.Optional;
-
-import static ru.practicum.shareit.user.mapper.UserMapper.mapToUser;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl implements UserService {
-
     private final UserRepository userRepository;
 
     @Override
-    public List<UserDto> findAll() {
+    public UserDto createUser(NewUserRequest request) {
+        checkEmailUniqueness(request.getEmail());
+        User user = UserMapper.toUser(request);
+        userRepository.save(user);
+        return UserMapper.toUserDto(user);
+    }
+
+    @Override
+    public UserDto getUserById(long userId) {
+        return userRepository.findById(userId)
+                .map(UserMapper::toUserDto)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id = " + userId + " не найден"));
+    }
+
+    @Override
+    public List<UserDto> getUsers() {
         return userRepository.findAll().stream()
-                .map(UserMapper::mapToUserDto)
+                .map(UserMapper::toUserDto)
                 .toList();
     }
 
     @Override
-    public UserDto create(NewUserDto userDto) {
-        validateEmailExist(userDto.getEmail());
-        return UserMapper.mapToUserDto(userRepository.save(mapToUser(userDto)));
+    public UserDto updateUser(long userId, UpdateUserRequest request) {
+        checkEmailUniqueness(request.getEmail());
+        User updatedUser = userRepository.findById(userId)
+                .map(user -> updateUserFields(user, request))
+                .orElseThrow(() -> new NotFoundException("Пользователь с id = " + userId + " не найден"));
+        userRepository.save(updatedUser);
+        return UserMapper.toUserDto(updatedUser);
     }
 
     @Override
-    public UserDto findById(Long userId) {
-        return UserMapper.mapToUserDto(validateUserExist(userId));
-    }
-
-    @Override
-    public UserDto update(Long userId, UpdateUserDto userDto) {
-        User user = validateUserExist(userId);
-        validateEmailExist(userDto.getEmail(), user.getId());
-        UserMapper.updateUserFields(user, userDto);
-        userRepository.save(user);
-        return UserMapper.mapToUserDto(user);
-    }
-
-    @Override
-    public void deleteById(Long userId) {
-        validateUserExist(userId);
+    public void deleteUser(long userId) {
         userRepository.deleteById(userId);
     }
 
-    @Override
-    public User validateUserExist(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(String.format("Пользователь с id %d не найден.", userId)));
-    }
-
-    private void validateEmailExist(String email, Long currentUserId) {
-        Optional<User> alreadyExistUser = userRepository.findByEmail(email);
-        if (alreadyExistUser.isPresent() && !alreadyExistUser.get().getId().equals(currentUserId)) {
-            throw new DuplicatedDataException(String.format("Email - %s уже используется", email));
+    private void checkEmailUniqueness(String email) {
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new DuplicatedDataException("Пользователь с таким email уже существует");
         }
     }
 
-    private void validateEmailExist(String email) {
-        Optional<User> alreadyExistUser = userRepository.findByEmail(email);
-        if (alreadyExistUser.isPresent()) {
-            throw new DuplicatedDataException(String.format("Email - %s уже используется", email));
+    private User updateUserFields(User user, UpdateUserRequest request) {
+        if (request.hasName()) {
+            user.setName(request.getName());
         }
+        if (request.hasEmail()) {
+            user.setEmail(request.getEmail());
+        }
+        return user;
     }
 }

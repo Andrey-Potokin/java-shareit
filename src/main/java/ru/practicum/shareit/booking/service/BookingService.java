@@ -1,23 +1,19 @@
 package ru.practicum.shareit.booking.service;
 
-import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.booking.dto.NewBookingDto;
-import ru.practicum.shareit.booking.model.BookingState;
+import ru.practicum.shareit.booking.dto.NewBookingRequest;
 
 import java.util.List;
 
-@Transactional(readOnly = true)
 public interface BookingService {
-    @Transactional
-    BookingDto create(Long userId, NewBookingDto newBookingDto);
 
-    BookingDto findById(Long userId, Long bookingId);
+    BookingDto createBooking(Long userId, NewBookingRequest request);
 
-    @Transactional
-    BookingDto updateStatus(Long userId, Long bookingId, boolean approved);
+    BookingDto updateBookingStatus(Long userId, Long bookingId, Boolean approved);
 
-    List<BookingDto> findAllByBookerId(Long bookerId, BookingState state);
+    BookingDto getBooking(Long userId, Long bookingId);
 
-    List<BookingDto> findAllByOwnerId(Long ownerId, BookingState state);
+    List<BookingDto> getBookingsByBookerId(Long userId, String state);
+
+    List<BookingDto> getBookingsByOwnerId(Long userId, String state);
 }

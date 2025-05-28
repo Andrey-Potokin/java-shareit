@@ -1,52 +1,56 @@
 package ru.practicum.shareit.user.controller;
 
 import jakarta.validation.Valid;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.user.dto.NewUserDto;
-import ru.practicum.shareit.user.dto.UpdateUserDto;
+import ru.practicum.shareit.user.dto.NewUserRequest;
+import ru.practicum.shareit.user.dto.UpdateUserRequest;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/users")
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
+@RequestMapping("/users")
+@Slf4j
 public class UserController {
-    UserService userService;
+    private final UserService userService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto create(@Valid @RequestBody NewUserDto userDto) {
-        return userService.create(userDto);
+    public UserDto createUser(@Valid @RequestBody NewUserRequest request) {
+        log.debug("Принят запрос на создание пользователя: {}", request);
+        return userService.createUser(request);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<UserDto> getAll() {
-        return userService.findAll();
+    public List<UserDto> getUsers() {
+        log.debug("Принят запрос на получение списка пользователей");
+        return userService.getUsers();
     }
 
     @GetMapping("/{userId}")
     @ResponseStatus(HttpStatus.OK)
-    public UserDto getById(@PathVariable("userId") Long userId) {
-        return userService.findById(userId);
+    public UserDto getUserById(@PathVariable("userId") long userId) {
+        log.debug("Принят запрос на получение пользователя с id={}", userId);
+        return userService.getUserById(userId);
     }
 
     @PatchMapping("/{userId}")
     @ResponseStatus(HttpStatus.OK)
-    public UserDto update(@PathVariable("userId") Long userId, @Valid @RequestBody UpdateUserDto userDto) {
-        return userService.update(userId, userDto);
+    public UserDto updateUser(@PathVariable("userId") long userId, @RequestBody UpdateUserRequest request) {
+        log.debug("Принят запрос на обновление пользователя с id={} и запросом {}", userId, request);
+        return userService.updateUser(userId, request);
     }
 
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteById(@PathVariable Long userId) {
-        userService.deleteById(userId);
+    public void deleteUser(@PathVariable("userId") long userId) {
+        log.debug("Принят запрос на удаление пользователя с id={}", userId);
+        userService.deleteUser(userId);
     }
 }
