@@ -1,10 +1,7 @@
 package ru.practicum.shareit.item.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import ru.practicum.shareit.user.model.User;
 
 @Entity
@@ -21,14 +18,17 @@ public class Item {
     @Column(nullable = false)
     private String name;
 
+    @Column(name = "description")
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @ToString.Exclude
     private User owner;
 
     @Column(name = "is_available", nullable = false)
     private Boolean available;
 
+    @Column(name = "request")
     private String request;
 }

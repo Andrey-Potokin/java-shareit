@@ -30,9 +30,9 @@ public class Comment {
     @ToString.Exclude
     User author;
 
-    @Column(nullable = false)
+    @Column(name = "text", nullable = false)
     String text;
 
-    @Column(nullable = false)
+    @Column(name = "created", nullable = false)
     LocalDateTime created;
 }
