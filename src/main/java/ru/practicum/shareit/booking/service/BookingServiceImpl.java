@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.NewBookingRequest;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
@@ -12,7 +13,6 @@ import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.ItemNotAvailableException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.NotOwnerException;
 import ru.practicum.shareit.exception.ParameterNotValidException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
@@ -25,6 +25,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookingRepository;
@@ -32,6 +33,7 @@ public class BookingServiceImpl implements BookingService {
     private final ItemRepository itemRepository;
 
     @Override
+    @Transactional
     public BookingDto createBooking(Long bookerId, NewBookingRequest request) {
         User booker = userRepository.findById(bookerId)
                 .orElseThrow(() -> {
@@ -65,27 +67,17 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public BookingDto getBooking(Long userId, Long bookingId) {
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> {
-                    log.error("Бронирование с id {} не найдено", bookingId);
-                    return new NotFoundException("Бронирование с id " + bookingId + " не найдено");
-                });
-        if (!booking.getItem().getOwner().getId().equals(userId) && !booking.getBooker().getId().equals(userId)) {
-            log.error("Пользователь с id {} не является владельцем вещи с id {}", userId, booking.getItem().getId());
-            throw new NotFoundException("Пользователь с id " + userId + " не является владельцем вещи с id "
-                    + booking.getItem().getId());
-        }
+    public BookingDto getBooking(Long ownerId, Long bookingId) {
+        Booking booking = getBookingById(bookingId);
+
+        validateUserOwnership(ownerId, booking);
+
         return BookingMapper.toBookingDto(booking);
     }
 
     @Override
     public List<BookingDto> getBookingsByBookerId(Long bookerId, String state) {
-        if (!state.equals("ALL") && !state.equals("CURRENT") && !state.equals("FUTURE")
-                && !state.equals("PAST") && !state.equals("WAITING") && !state.equals("REJECTED")) {
-            log.error("Неверное состояние бронирования");
-            throw new NotFoundException("Неверное состояние бронирования");
-        }
+        validateBookingState(state);
 
         if (state.equals("ALL")) {
             return bookingRepository.findAllByBookerId(bookerId).stream()
@@ -103,11 +95,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingDto> getBookingsByOwnerId(Long ownerId, String state) {
-        if (!state.equals("ALL") && !state.equals("CURRENT") && !state.equals("FUTURE")
-                && !state.equals("PAST") && !state.equals("WAITING") && !state.equals("REJECTED")) {
-            log.error("Неверное состояние бронирования");
-            throw new NotFoundException("Неверное состояние бронирования");
-        }
+        validateBookingState(state);
 
         List<Booking> bookings;
         if (state.equals("ALL")) {
@@ -127,18 +115,11 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional
     public BookingDto updateBookingStatus(Long ownerId, Long bookingId, Boolean approved) {
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> {
-                    log.error("Бронирование с id {} не найдено", bookingId);
-                    return new NotFoundException("Бронирование с id " + bookingId + " не найдено");
-                });
+        Booking booking = getBookingById(bookingId);
 
-        if (!booking.getItem().getOwner().getId().equals(ownerId)) {
-            log.error("Пользователь с id {} не является владельцем вещи с id {}", ownerId, booking.getItem().getId());
-            throw new NotOwnerException("Пользователь с id " + ownerId + " не является владельцем вещи с id "
-                    + booking.getItem().getId());
-        }
+        validateUserOwnership(ownerId, booking);
 
         if (approved) {
             booking.setStatus(BookingStatus.APPROVED);
@@ -147,5 +128,29 @@ public class BookingServiceImpl implements BookingService {
         }
 
         return BookingMapper.toBookingDto(bookingRepository.save(booking));
+    }
+
+    private void validateBookingState(String state) {
+        if (!state.equals("ALL") && !state.equals("CURRENT") && !state.equals("FUTURE")
+                && !state.equals("PAST") && !state.equals("WAITING") && !state.equals("REJECTED")) {
+            log.error("Неверное состояние бронирования");
+            throw new NotFoundException("Неверное состояние бронирования");
+        }
+    }
+
+    private void validateUserOwnership(Long userId, Booking booking) {
+        if (!booking.getItem().getOwner().getId().equals(userId) && !booking.getBooker().getId().equals(userId)) {
+            log.error("Пользователь с id {} не является владельцем вещи с id {}", userId, booking.getItem().getId());
+            throw new NotFoundException("Пользователь с id " + userId + " не является владельцем вещи с id "
+                    + booking.getItem().getId());
+        }
+    }
+
+    private Booking getBookingById(Long bookingId) {
+        return bookingRepository.findById(bookingId)
+                .orElseThrow(() -> {
+                    log.error("Бронирование с id {} не найдено", bookingId);
+                    return new NotFoundException("Бронирование с id " + bookingId + " не найдено");
+                });
     }
 }
