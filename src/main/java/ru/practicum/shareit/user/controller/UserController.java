@@ -22,30 +22,35 @@ public class UserController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UserDto createUser(@Valid @RequestBody NewUserRequest request) {
+        log.debug("Принят запрос на создание пользователя: {}", request);
         return userService.createUser(request);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<UserDto> getUsers() {
+        log.debug("Принят запрос на получение списка пользователей");
         return userService.getUsers();
     }
 
     @GetMapping("/{userId}")
     @ResponseStatus(HttpStatus.OK)
     public UserDto getUserById(@PathVariable("userId") long userId) {
+        log.debug("Принят запрос на получение пользователя с id={}", userId);
         return userService.getUserById(userId);
     }
 
     @PatchMapping("/{userId}")
     @ResponseStatus(HttpStatus.OK)
     public UserDto updateUser(@PathVariable("userId") long userId, @RequestBody UpdateUserRequest request) {
+        log.debug("Принят запрос на обновление пользователя с id={} и запросом {}", userId, request);
         return userService.updateUser(userId, request);
     }
 
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable("userId") long userId) {
+        log.debug("Принят запрос на удаление пользователя с id={}", userId);
         userService.deleteUser(userId);
     }
 }

@@ -1,15 +1,19 @@
 package ru.practicum.shareit.error;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.practicum.shareit.exception.DuplicatedDataException;
-import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.NotOwnerException;
-import ru.practicum.shareit.exception.ParameterNotValidException;
+import ru.practicum.shareit.exception.*;
+
+import java.util.Objects;
 
 @RestControllerAdvice
+@Slf4j
 public class ErrorHandler {
 
     @ExceptionHandler()
@@ -49,8 +53,30 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleItemNotAvailableException(final ItemNotAvailableException e) {
+        return new ErrorResponse(
+                "Ошибка бронирования вещи!",
+                e.getMessage()
+        );
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+        BindingResult bindingResult = e.getBindingResult();
+        FieldError fieldError = bindingResult.getFieldError();
+        log.error("Ошибка валидации: {}", Objects.requireNonNull(fieldError).getDefaultMessage());
+        return new ErrorResponse(
+                "Ошибка валидации!",
+                fieldError.getDefaultMessage()
+        );
+    }
+
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleThrowable(final Throwable e) {
+        log.error("Ошибка сервера: {}", e.getMessage());
         return new ErrorResponse(
                 "Ошибка сервера!",
                 e.getMessage()
