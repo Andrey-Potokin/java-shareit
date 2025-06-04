@@ -84,7 +84,7 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Transactional
-    private void loadDetails(RequestDto requestDto) {
+    public void loadDetails(RequestDto requestDto) {
         List<ItemDto> itemDtos = itemRepository.findByRequestIdOrderByRequestIdDesc(requestDto.getId())
                 .stream()
                 .map(ItemMapper::toItemDto)

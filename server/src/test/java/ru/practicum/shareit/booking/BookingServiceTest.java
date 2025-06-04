@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -32,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @ActiveProfiles("test")
 @Transactional
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class BookingServiceTest {
     @Autowired
     ItemService itemService;
@@ -42,12 +44,12 @@ public class BookingServiceTest {
     @Autowired
     BookingService bookingService;
 
-    static NewUserRequest user1;
-    static NewUserRequest user2;
-    static NewItemRequest item1;
+    NewUserRequest user1;
+    NewUserRequest user2;
+    NewItemRequest item1;
 
     @BeforeAll
-    static void beforeAll() {
+    void beforeAll() {
         user1 = NewUserRequest.builder().name("Yandex").email("yandex@practicum.ru").build();
         user2 = NewUserRequest.builder().name("Yandex2").email("yandex2@practicum.ru").build();
         item1 = NewItemRequest.builder().name("Yandex").description("YandexPracticum").available(true).build();
